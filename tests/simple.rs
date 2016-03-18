@@ -13,10 +13,10 @@ fn ident() {
 
 #[test]
 fn wikipedia() {
-    let a = || Term(0);
-    let b = || Term(1);
-    let c = || Term(2);
-    let d = || Term(3);
+    let d = || Term(0);
+    let c = || Term(1);
+    let b = || Term(2);
+    let a = || Term(3);
     let not = |x| Not(Box::new(x));
     let expr = Or(vec![
         And(vec![not(a()), b(), not(c()), not(d())]),
@@ -29,13 +29,17 @@ fn wikipedia() {
         And(vec![a(), b(), c(), not(d())]),
     ]);
 
+    let mut minterms: Vec<Term> = [4u32, 8, 9, 10, 12, 11, 14, 15].iter().map(|&i| Term::new(i)).collect();
+    minterms.sort();
+    assert_eq!(expr.minterms(), minterms);
+
     assert_eq!(
         essential_minterms(expr.minterms()).essentials,
         vec![
-            Term::with_dontcare(2, 1),
-            Term::with_dontcare(1, 6),
-            Term::with_dontcare(1, 12),
-            Term::with_dontcare(5, 10),
+            Term::with_dontcare(4, 8),
+            Term::with_dontcare(8, 3),
+            Term::with_dontcare(8, 6),
+            Term::with_dontcare(10, 5),
         ]
     );
 }

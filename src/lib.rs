@@ -40,20 +40,34 @@ impl Bool {
     }
 }
 
+#[derive(Debug)]
 pub struct Essentials {
     pub minterms: Vec<Term>,
     pub essentials: Vec<Term>,
 }
 
-#[derive(Clone, Eq)]
+#[derive(Clone, Eq, Ord)]
 pub struct Term {
     dontcare: u32,
     term: u32,
 }
 
+impl std::cmp::PartialOrd for Term {
+    fn partial_cmp(&self, rhs: &Self) -> Option<std::cmp::Ordering> {
+        use std::cmp::Ordering::*;
+        match self.dontcare.partial_cmp(&rhs.dontcare) {
+            Some(Equal) => {},
+            other => return other,
+        }
+        let l = self.term & !self.dontcare;
+        let r = rhs.term & !rhs.dontcare;
+        l.partial_cmp(&r)
+    }
+}
+
 impl std::fmt::Debug for Term {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        for i in 0..32 {
+        for i in (0..32).rev() {
             if (self.dontcare & (1 << i)) != 0 {
                 try!(write!(fmt, "-"));
             } else if (self.term & (1 << i)) != 0 {
@@ -69,6 +83,31 @@ impl std::fmt::Debug for Term {
 impl std::cmp::PartialEq for Term {
     fn eq(&self, other: &Self) -> bool {
         (self.dontcare == other.dontcare) && ((self.term & !self.dontcare) == (other.term & !other.dontcare))
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum TermFromStrError {
+    Only32TermsSupported,
+    UnsupportedCharacter(char),
+}
+
+impl std::str::FromStr for Term {
+    type Err = TermFromStrError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() > 32 {
+            return Err(TermFromStrError::Only32TermsSupported);
+        }
+        let mut term = Term::new(0);
+        for (i, c) in s.chars().rev().enumerate() {
+            match c {
+                '-' => term.dontcare |= 1 << i,
+                '1' => term.term |= 1 << i,
+                '0' => {},
+                c => return Err(TermFromStrError::UnsupportedCharacter(c)),
+            }
+        }
+        Ok(term)
     }
 }
 
@@ -102,7 +141,9 @@ impl Term {
     }
 }
 
-pub fn essential_minterms(minterms: Vec<Term>) -> Essentials {
+pub fn essential_minterms(mut minterms: Vec<Term>) -> Essentials {
+    minterms.sort();
+    let minterms = minterms;
     let mut terms = minterms.clone();
     let mut essentials: Vec<Term> = Vec::new();
     while !terms.is_empty() {
