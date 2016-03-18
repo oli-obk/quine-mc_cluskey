@@ -77,12 +77,8 @@ impl Term {
 
     pub fn combine(&self, other: &Term) -> Option<Term> {
         let dc = self.dontcare ^ other.dontcare;
-        println!("{:x}^{:x} = {:x}", self.dontcare, other.dontcare, dc);
         let term = self.term ^ other.term;
-        println!("{:x}^{:x} = {:x}", self.term, other.term, term);
         let dc_mask = self.dontcare | other.dontcare;
-        println!("{:x}|{:x} = {:x}", self.dontcare, other.dontcare, dc_mask);
-        println!("{}, {}", dc.count_ones(), (!dc_mask & term).count_ones());
         match (dc.count_ones(), (!dc_mask & term).count_ones()) {
             (0, 1) |
             (1, 0) => Some(Term {
@@ -115,18 +111,22 @@ pub fn simplify(expression: &Bool) -> Vec<Bool> {
         println!("{:#?}", essentials);
         println!("{:#?}", minterms);
         let old = std::mem::replace(&mut minterms, Vec::new());
+        let mut combined_terms = std::collections::BTreeSet::new();
         for (i, term) in old.iter().enumerate() {
-            let mut combined = false;
-            for other in &old[i..] {
+            for (other_i, other) in old[i..].iter().enumerate() {
                 if let Some(new_term) = term.combine(other) {
+                    println!("combined {} and {}", i, other_i + i);
                     minterms.push(new_term);
-                    combined = true;
+                    combined_terms.insert(other_i + i);
+                    combined_terms.insert(i);
                 }
             }
-            if !combined {
+            if !combined_terms.contains(&i) {
+                println!("{} is essential", i);
                 essentials.push(term.clone());
             }
         }
+        minterms.dedup();
     }
     println!("{:#?}", essentials);
     unimplemented!()
