@@ -1,10 +1,10 @@
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Bool {
     True,
     False,
     Term(u8),
-    And(Box<Bool>, Box<Bool>),
-    Or(Box<Bool>, Box<Bool>),
+    And(Vec<Bool>),
+    Or(Vec<Bool>),
     Not(Box<Bool>),
 }
 
@@ -13,8 +13,8 @@ impl Bool {
         use self::Bool::*;
         match *self {
             Term(u) => 1 << u,
-            Or(ref a, ref b) |
-            And(ref a, ref b) => a.terms() | b.terms(),
+            Or(ref a) |
+            And(ref a) => a.iter().fold(0, |state, item| { state | item.terms() }),
             Not(ref a) => a.terms(),
             True | False => 0,
         }
@@ -26,8 +26,8 @@ impl Bool {
             True => true,
             False => false,
             Term(i) => (terms & (1 << i)) != 0,
-            And(ref a, ref b) => a.eval(terms) && b.eval(terms),
-            Or(ref a, ref b) => a.eval(terms) || b.eval(terms),
+            And(ref a) => a.iter().all(|item| item.eval(terms)),
+            Or(ref a) => a.iter().any(|item| item.eval(terms)),
             Not(ref a) => !a.eval(terms),
         }
     }
