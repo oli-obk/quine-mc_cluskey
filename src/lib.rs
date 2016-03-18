@@ -46,22 +46,80 @@ pub struct Essentials {
     pub essentials: Vec<Term>,
 }
 
+pub fn simplify_prime_implicant_expr(mut e: Vec<Vec<Vec<u32>>>) -> Vec<Vec<u32>> {
+    loop {
+        let a = e.pop().unwrap();
+        if let Some(b) = e.pop() {
+            let distributed = distribute(&a, &b);
+            let simplified = simplify(distributed);
+            e.push(simplified);
+        } else {
+            return a;
+        }
+    }
+}
+
+// AA     -> A
+// A + AB -> A
+// A + A  -> A
+fn simplify(mut e: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
+    for e in &mut e {
+        e.sort();
+        e.dedup();
+    }
+    e.sort();
+    e.dedup();
+    let mut del = Vec::new();
+    for (i, a) in e.iter().enumerate() {
+        for (j, b) in e[i..].iter().enumerate() {
+            if a.len() < b.len() {
+                // A + AB -> delete AB
+                if a.iter().all(|x| b.iter().any(|y| y == x)) {
+                    del.push(j + i);
+                }
+            } else if b.len() < a.len() {
+                // AB + A -> delete AB
+                if b.iter().all(|x| a.iter().any(|y| y == x)) {
+                    del.push(i);
+                }
+            }
+        }
+    }
+    del.sort();
+    for del in del.into_iter().rev() {
+        e.swap_remove(del);
+    }
+    e
+}
+
+// (AB + CD)(EF + GH) -> ABEF + ABGH + CDEF + CDGH
+fn distribute(l: &[Vec<u32>], r: &[Vec<u32>]) -> Vec<Vec<u32>> {
+    let mut ret = Vec::new();
+    assert!(!l.is_empty());
+    assert!(!r.is_empty());
+    for l in l {
+        for r in r {
+            ret.push(l.iter().chain(r).cloned().collect());
+        }
+    }
+    ret
+}
+
+
 impl Essentials {
-    pub fn prime_implicant_bool(&self) -> Bool {
-        use self::Bool::*;
+    pub fn prime_implicant_expr(&self) -> Vec<Vec<Vec<u32>>> {
         let mut v = Vec::new();
         for e in &self.essentials {
             let mut w = Vec::new();
             for (i, t) in self.minterms.iter().enumerate() {
                 if e.contains(t) {
-                    println!("{:?} contains {:?}", e, t);
-                    assert_eq!(i as u8 as usize, i);
-                    w.push(Term(i as u8));
+                    assert_eq!(i as u32 as usize, i);
+                    w.push(vec![i as u32]);
                 }
             }
-            v.push(Or(w));
+            v.push(w);
         }
-        And(v)
+        v
     }
 }
 
@@ -185,6 +243,7 @@ pub fn essential_minterms(mut minterms: Vec<Term>) -> Essentials {
                 essentials.push(term.clone());
             }
         }
+        terms.sort();
         terms.dedup();
     }
     Essentials {
