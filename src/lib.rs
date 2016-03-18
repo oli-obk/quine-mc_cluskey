@@ -32,12 +32,17 @@ impl Bool {
         }
     }
 
-    pub fn min_terms(&self) -> Vec<Term> {
+    pub fn minterms(&self) -> Vec<Term> {
         let terms = self.terms();
         let nterms = terms.count_ones();
         assert!((0..nterms).all(|i| (terms & (1 << i)) != 0), "non-continuous naming scheme");
         (0..(1 << nterms)).filter(|&i| self.eval(i)).map(Term::new).collect()
     }
+}
+
+pub struct Essentials {
+    pub minterms: Vec<Term>,
+    pub essentials: Vec<Term>,
 }
 
 #[derive(Clone, Eq)]
@@ -97,8 +102,7 @@ impl Term {
     }
 }
 
-pub fn prime_implicants(expression: &Bool) -> Vec<Term> {
-    let minterms = expression.min_terms();
+pub fn essential_minterms(minterms: Vec<Term>) -> Essentials {
     let mut terms = minterms.clone();
     let mut essentials: Vec<Term> = Vec::new();
     while !terms.is_empty() {
@@ -122,5 +126,8 @@ pub fn prime_implicants(expression: &Bool) -> Vec<Term> {
         }
         terms.dedup();
     }
-    essentials
+    Essentials {
+        minterms: minterms,
+        essentials: essentials,
+    }
 }

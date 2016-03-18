@@ -5,10 +5,10 @@ use quine_mc_cluskey::Bool::*;
 
 #[test]
 fn ident() {
-    assert_eq!(prime_implicants(&And(vec![Term(0), Term(1)])), vec![Term::new(3)]);
-    assert_eq!(prime_implicants(&True), vec![Term::new(0)]);
-    assert_eq!(prime_implicants(&False), vec![]);
-    assert_eq!(prime_implicants(&Term(0)), vec![Term::new(1)]);
+    assert_eq!(essential_minterms(And(vec![Term(0), Term(1)]).minterms()).essentials, vec![Term::new(3)]);
+    assert_eq!(essential_minterms(True.minterms()).essentials, vec![Term::new(0)]);
+    assert_eq!(essential_minterms(False.minterms()).essentials, vec![]);
+    assert_eq!(essential_minterms(Term(0).minterms()).essentials, vec![Term::new(1)]);
 }
 
 #[test]
@@ -30,7 +30,7 @@ fn wikipedia() {
     ]);
 
     assert_eq!(
-        prime_implicants(&expr),
+        essential_minterms(expr.minterms()).essentials,
         vec![
             Term::with_dontcare(2, 1),
             Term::with_dontcare(1, 6),
