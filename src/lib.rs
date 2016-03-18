@@ -46,6 +46,25 @@ pub struct Essentials {
     pub essentials: Vec<Term>,
 }
 
+impl Essentials {
+    pub fn prime_implicant_bool(&self) -> Bool {
+        use self::Bool::*;
+        let mut v = Vec::new();
+        for e in &self.essentials {
+            let mut w = Vec::new();
+            for (i, t) in self.minterms.iter().enumerate() {
+                if e.contains(t) {
+                    println!("{:?} contains {:?}", e, t);
+                    assert_eq!(i as u8 as usize, i);
+                    w.push(Term(i as u8));
+                }
+            }
+            v.push(Or(w));
+        }
+        And(v)
+    }
+}
+
 #[derive(Clone, Eq, Ord)]
 pub struct Term {
     dontcare: u32,
@@ -139,6 +158,11 @@ impl Term {
             _ => None,
         }
     }
+
+    pub fn contains(&self, other: &Self) -> bool {
+        ((self.dontcare | other.dontcare) == self.dontcare) &&
+        (((self.term ^ other.term) & !self.dontcare) == 0)
+    }
 }
 
 pub fn essential_minterms(mut minterms: Vec<Term>) -> Essentials {
@@ -147,21 +171,17 @@ pub fn essential_minterms(mut minterms: Vec<Term>) -> Essentials {
     let mut terms = minterms.clone();
     let mut essentials: Vec<Term> = Vec::new();
     while !terms.is_empty() {
-        println!("{:#?}", essentials);
-        println!("{:#?}", terms);
         let old = std::mem::replace(&mut terms, Vec::new());
         let mut combined_terms = std::collections::BTreeSet::new();
         for (i, term) in old.iter().enumerate() {
             for (other_i, other) in old[i..].iter().enumerate() {
                 if let Some(new_term) = term.combine(other) {
-                    println!("combined {} and {}", i, other_i + i);
                     terms.push(new_term);
                     combined_terms.insert(other_i + i);
                     combined_terms.insert(i);
                 }
             }
             if !combined_terms.contains(&i) {
-                println!("{} is essential", i);
                 essentials.push(term.clone());
             }
         }
