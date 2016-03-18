@@ -90,7 +90,7 @@ impl Term {
     }
 }
 
-pub fn simplify(expression: &Bool) -> Vec<Bool> {
+pub fn prime_implicants(expression: &Bool) -> Vec<Term> {
     let terms = expression.terms();
     let nterms = terms.count_ones();
     for i in 0..nterms {
@@ -99,24 +99,19 @@ pub fn simplify(expression: &Bool) -> Vec<Bool> {
         }
     }
     // minterms consist of other minterms
-    let mut minterms: Vec<Term> = Vec::new();
-    // initialize the minterms
-    for i in 0..(1 << nterms) {
-        if expression.eval(i) {
-            minterms.push(Term::new(i));
-        }
-    }
+    let minterms: Vec<Term> = (0..(1 << nterms)).filter(|&i| expression.eval(i)).map(Term::new).collect();
+    let mut terms = minterms.clone();
     let mut essentials: Vec<Term> = Vec::new();
-    while !minterms.is_empty() {
+    while !terms.is_empty() {
         println!("{:#?}", essentials);
-        println!("{:#?}", minterms);
-        let old = std::mem::replace(&mut minterms, Vec::new());
+        println!("{:#?}", terms);
+        let old = std::mem::replace(&mut terms, Vec::new());
         let mut combined_terms = std::collections::BTreeSet::new();
         for (i, term) in old.iter().enumerate() {
             for (other_i, other) in old[i..].iter().enumerate() {
                 if let Some(new_term) = term.combine(other) {
                     println!("combined {} and {}", i, other_i + i);
-                    minterms.push(new_term);
+                    terms.push(new_term);
                     combined_terms.insert(other_i + i);
                     combined_terms.insert(i);
                 }
@@ -126,8 +121,7 @@ pub fn simplify(expression: &Bool) -> Vec<Bool> {
                 essentials.push(term.clone());
             }
         }
-        minterms.dedup();
+        terms.dedup();
     }
-    println!("{:#?}", essentials);
-    unimplemented!()
+    essentials
 }
