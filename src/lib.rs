@@ -31,6 +31,13 @@ impl Bool {
             Not(ref a) => !a.eval(terms),
         }
     }
+
+    pub fn min_terms(&self) -> Vec<Term> {
+        let terms = self.terms();
+        let nterms = terms.count_ones();
+        assert!((0..nterms).all(|i| (terms & (1 << i)) != 0), "non-continuous naming scheme");
+        (0..(1 << nterms)).filter(|&i| self.eval(i)).map(Term::new).collect()
+    }
 }
 
 #[derive(Clone, Eq)]
@@ -91,15 +98,7 @@ impl Term {
 }
 
 pub fn prime_implicants(expression: &Bool) -> Vec<Term> {
-    let terms = expression.terms();
-    let nterms = terms.count_ones();
-    for i in 0..nterms {
-        if terms & (1 << i) == 0 {
-            panic!("non-continuous naming scheme");
-        }
-    }
-    // minterms consist of other minterms
-    let minterms: Vec<Term> = (0..(1 << nterms)).filter(|&i| expression.eval(i)).map(Term::new).collect();
+    let minterms = expression.min_terms();
     let mut terms = minterms.clone();
     let mut essentials: Vec<Term> = Vec::new();
     while !terms.is_empty() {
