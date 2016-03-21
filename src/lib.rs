@@ -1,4 +1,4 @@
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone)]
 pub enum Bool {
     True,
     False,
@@ -37,6 +37,31 @@ impl Bool {
         let nterms = terms.count_ones();
         assert!((0..nterms).all(|i| (terms & (1 << i)) != 0), "non-continuous naming scheme");
         (0..(1 << nterms)).filter(|&i| self.eval(i)).map(Term::new).collect()
+    }
+}
+
+impl std::fmt::Debug for Bool {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        use self::Bool::*;
+        match *self {
+            True => write!(fmt, "T"),
+            False => write!(fmt, "F"),
+            Term(i) => write!(fmt, "{}", "abcdefghijklmnopqrstuvwxyzαβγδεζη".chars().nth(i as usize).unwrap()),
+            Not(ref a) => write!(fmt, "{:?}'", a),
+            And(ref a) => {
+                for a in a {
+                    try!(write!(fmt, "{:?}", a));
+                }
+                Ok(())
+            },
+            Or(ref a) => {
+                try!(write!(fmt, "{:?}", a[0]));
+                for a in &a[1..] {
+                    try!(write!(fmt, " + {:?}", a));
+                }
+                Ok(())
+            }
+        }
     }
 }
 
@@ -220,6 +245,22 @@ impl Term {
     pub fn contains(&self, other: &Self) -> bool {
         ((self.dontcare | other.dontcare) == self.dontcare) &&
         (((self.term ^ other.term) & !self.dontcare) == 0)
+    }
+
+    pub fn to_bool_expr(&self, n_variables: u32) -> Bool {
+        assert!(self.dontcare < (1 << n_variables));
+        assert!(self.term < (1 << n_variables));
+        let mut v = Vec::new();
+        for (i, bit) in (0..n_variables).rev().enumerate() {
+            if (self.dontcare & (1 << bit)) == 0 {
+                if (self.term & (1 << bit)) != 0 {
+                    v.push(Bool::Term(i as u8))
+                } else {
+                    v.push(Bool::Not(Box::new(Bool::Term(i as u8))))
+                }
+            }
+        }
+        Bool::And(v)
     }
 }
 

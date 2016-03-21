@@ -1,7 +1,6 @@
 extern crate quine_mc_cluskey;
 
 use quine_mc_cluskey::*;
-use quine_mc_cluskey::Bool::*;
 use std::str::FromStr;
 
 #[test]
@@ -18,6 +17,7 @@ fn wikipedia() {
     */
 
     let minterms = [0, 1, 2, 5, 6, 7].iter().cloned().map(Term::new).collect();
+    let variables = 3;
     let essentials = essential_minterms(minterms);
     assert_eq!(essentials.essentials, vec![
         Term::from_str("000-").unwrap(),
@@ -48,12 +48,10 @@ fn wikipedia() {
     let solutions = simple.into_iter()
                           .filter(|v| v.len() == shortest)
                           .map(|v| {
-                              v.iter().map(|&i| essentials.essentials[i as usize].clone()).collect()
+                              Bool::Or(v.iter().map(|&i| {
+                                  essentials.essentials[i as usize].to_bool_expr(variables)
+                              }).collect())
                           })
-                          .collect::<Vec<Vec<_>>>();
-    panic!("{:#?}", solutions);
-    // TODO: represent as terminals
-
-    // KNP    expands to    a'b'+ bc'+ ac
-    // LMQ    expands to    a'c'+ b'c + ab
+                          .collect::<Vec<Bool>>();
+    assert_eq!(&format!("{:?}", solutions), "[a'b' + ac + b'c, ab + a'c' + bc']");
 }

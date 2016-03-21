@@ -12,6 +12,16 @@ fn ident() {
 }
 
 #[test]
+fn debug() {
+    assert_eq!(&format!("{:?}", True), "T");
+    assert_eq!(&format!("{:?}", False), "F");
+    assert_eq!(&format!("{:?}", Term(0)), "a");
+    assert_eq!(&format!("{:?}", Term(2)), "c");
+    assert_eq!(&format!("{:?}", Not(Box::new(Term(2)))), "c'");
+    assert_eq!(&format!("{:?}", And(vec![True, Not(Box::new(Term(2)))])), "Tc'");
+}
+
+#[test]
 fn wikipedia() {
     let d = || Term(0);
     let c = || Term(1);
@@ -38,8 +48,8 @@ fn wikipedia() {
         vec![
             Term::with_dontcare(4, 8),
             Term::with_dontcare(8, 3),
-            Term::with_dontcare(8, 6),
             Term::with_dontcare(10, 5),
+            Term::with_dontcare(8, 6),
         ]
     );
 }

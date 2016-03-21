@@ -56,3 +56,22 @@ fn contains() {
     assert!(Term::from_str("-01").unwrap().contains(&Term::from_str("1").unwrap()));
     assert!(Term::from_str("-01").unwrap().contains(&Term::from_str("101").unwrap()));
 }
+
+#[test]
+fn debug() {
+    assert_eq!(&format!("{:?}", Term::from_str("-01").unwrap()), "00000000000000000000000000000-01");
+    assert_eq!(&format!("{:?}", Term::from_str("11-").unwrap()), "0000000000000000000000000000011-");
+}
+
+#[test]
+fn to_bool() {
+// 0-0 + -10 + 11-
+// 00- + -01 + 1-1
+
+// KNP    expands to    a'b'+ bc'+ ac
+// LMQ    expands to    a'c'+ b'c + ab
+    assert_eq!(Term::from_str("11-").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Term(0), Bool::Term(1)]));
+    assert_eq!(Term::from_str("1-1").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Term(0), Bool::Term(2)]));
+    assert_eq!(Term::from_str("-01").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Not(Box::new(Bool::Term(1))), Bool::Term(2)]));
+    assert_eq!(Term::from_str("-10").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Term(1), Bool::Not(Box::new(Bool::Term(2)))]));
+}
