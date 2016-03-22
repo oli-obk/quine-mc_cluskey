@@ -22,6 +22,40 @@ fn debug() {
 }
 
 #[test]
+fn wikipedia2() {
+    let d = || Term(0);
+    let c = || Term(1);
+    let b = || Term(2);
+    let a = || Term(3);
+    let not = |x| Not(Box::new(x));
+    let expr = Or(vec![
+        And(vec![not(a()), b(), not(c()), not(d())]),
+        And(vec![a(), not(b()), not(c()), not(d())]),
+        And(vec![a(), not(b()), c(), not(d())]),
+        And(vec![a(), not(b()), c(), d()]),
+        And(vec![a(), b(), not(c()), not(d())]),
+        And(vec![a(), b(), c(), d()]),
+        And(vec![a(), not(b()), not(c()), d()]),
+        And(vec![a(), b(), c(), not(d())]),
+    ]);
+    let mut minterms: Vec<Term> = [4u32, 8, 9, 10, 12, 11, 14, 15].iter().map(|&i| Term::new(i)).collect();
+    minterms.sort();
+    assert_eq!(minterms, expr.minterms());
+    let simple = expr.simplify();
+    let d = || Term(3);
+    let c = || Term(2);
+    let b = || Term(1);
+    let a = || Term(0);
+    assert_eq!(simple, vec![
+        Or(vec![
+            And(vec![b(), not(c()), not(d())]),
+            And(vec![a(), not(b())]),
+            And(vec![a(), c()]),
+        ]),
+    ]);
+}
+
+#[test]
 fn wikipedia() {
     let d = || Term(3);
     let c = || Term(2);

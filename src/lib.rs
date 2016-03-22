@@ -38,6 +38,21 @@ impl Bool {
         assert!((0..nterms).all(|i| (terms & (1 << i)) != 0), "non-continuous naming scheme");
         (0..(1 << nterms)).filter(|&i| self.eval(i)).map(Term::new).collect()
     }
+
+    pub fn simplify(&self) -> Vec<Bool> {
+        let minterms = self.minterms();
+        let variables = self.terms().count_ones();
+        let essentials = essential_minterms(minterms);
+        let expr = essentials.prime_implicant_expr();
+        let simple = simplify_prime_implicant_expr(expr);
+        let shortest = simple.iter().map(Vec::len).min().unwrap();
+        simple.into_iter()
+              .filter(|v| v.len() == shortest)
+              .map(|v| Bool::Or(v.into_iter()
+                                 .map(|i| essentials.essentials[i as usize].to_bool_expr(variables))
+                                 .collect()))
+              .collect()
+    }
 }
 
 impl std::fmt::Debug for Bool {
