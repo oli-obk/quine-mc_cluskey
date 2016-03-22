@@ -267,12 +267,12 @@ impl Term {
         assert!(self.dontcare < (1 << n_variables));
         assert!(self.term < (1 << n_variables));
         let mut v = Vec::new();
-        for (i, bit) in (0..n_variables).rev().enumerate() {
+        for bit in 0..n_variables {
             if (self.dontcare & (1 << bit)) == 0 {
                 if (self.term & (1 << bit)) != 0 {
-                    v.push(Bool::Term(i as u8))
+                    v.push(Bool::Term(bit as u8))
                 } else {
-                    v.push(Bool::Not(Box::new(Bool::Term(i as u8))))
+                    v.push(Bool::Not(Box::new(Bool::Term(bit as u8))))
                 }
             }
         }

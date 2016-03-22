@@ -70,8 +70,8 @@ fn to_bool() {
 
 // KNP    expands to    a'b'+ bc'+ ac
 // LMQ    expands to    a'c'+ b'c + ab
-    assert_eq!(Term::from_str("11-").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Term(0), Bool::Term(1)]));
+    assert_eq!(Term::from_str("11-").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Term(1), Bool::Term(2)]));
     assert_eq!(Term::from_str("1-1").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Term(0), Bool::Term(2)]));
-    assert_eq!(Term::from_str("-01").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Not(Box::new(Bool::Term(1))), Bool::Term(2)]));
-    assert_eq!(Term::from_str("-10").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Term(1), Bool::Not(Box::new(Bool::Term(2)))]));
+    assert_eq!(Term::from_str("-01").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Term(0), Bool::Not(Box::new(Bool::Term(1)))]));
+    assert_eq!(Term::from_str("-10").unwrap().to_bool_expr(3), Bool::And(vec![Bool::Not(Box::new(Bool::Term(0))), Bool::Term(1)]));
 }

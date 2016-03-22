@@ -54,5 +54,5 @@ fn wikipedia() {
                               }).collect())
                           })
                           .collect::<Vec<Bool>>();
-    assert_eq!(&format!("{:?}", solutions), "[a'b' + ac + bc', ab + a'c' + b'c]");
+    assert_eq!(&format!("{:?}", solutions), "[b'c' + ac + a'b, bc + a'c' + ab']");
 }
