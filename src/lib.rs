@@ -111,6 +111,7 @@ fn simplify(mut e: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
         }
     }
     del.sort();
+    del.dedup();
     for del in del.into_iter().rev() {
         e.swap_remove(del);
     }
@@ -134,9 +135,9 @@ fn distribute(l: &[Vec<u32>], r: &[Vec<u32>]) -> Vec<Vec<u32>> {
 impl Essentials {
     pub fn prime_implicant_expr(&self) -> Vec<Vec<Vec<u32>>> {
         let mut v = Vec::new();
-        for e in &self.essentials {
+        for t in &self.minterms {
             let mut w = Vec::new();
-            for (i, t) in self.minterms.iter().enumerate() {
+            for (i, e) in self.essentials.iter().enumerate() {
                 if e.contains(t) {
                     assert_eq!(i as u32 as usize, i);
                     w.push(vec![i as u32]);

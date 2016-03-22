@@ -23,28 +23,17 @@ fn debug() {
 
 #[test]
 fn wikipedia() {
-    let d = || Term(0);
-    let c = || Term(1);
-    let b = || Term(2);
-    let a = || Term(3);
+    let d = || Term(3);
+    let c = || Term(2);
+    let b = || Term(1);
+    let a = || Term(0);
     let not = |x| Not(Box::new(x));
-    let expr = Or(vec![
-        And(vec![not(a()), b(), not(c()), not(d())]),
-        And(vec![a(), not(b()), not(c()), not(d())]),
-        And(vec![a(), not(b()), c(), not(d())]),
-        And(vec![a(), not(b()), c(), d()]),
-        And(vec![a(), b(), not(c()), not(d())]),
-        And(vec![a(), b(), c(), d()]),
-        And(vec![a(), not(b()), not(c()), d()]),
-        And(vec![a(), b(), c(), not(d())]),
-    ]);
-
     let mut minterms: Vec<Term> = [4u32, 8, 9, 10, 12, 11, 14, 15].iter().map(|&i| Term::new(i)).collect();
     minterms.sort();
-    assert_eq!(expr.minterms(), minterms);
 
+    let essentials = essential_minterms(minterms);
     assert_eq!(
-        essential_minterms(expr.minterms()).essentials,
+        essentials.essentials,
         vec![
             Term::with_dontcare(4, 8),
             Term::with_dontcare(8, 3),
@@ -52,4 +41,23 @@ fn wikipedia() {
             Term::with_dontcare(8, 6),
         ]
     );
+    println!("{:#?}", essentials);
+    let expr = essentials.prime_implicant_expr();
+    println!("{:?}", expr);
+    let simple = simplify_prime_implicant_expr(expr);
+    let shortest = simple.iter().map(Vec::len).min().unwrap();
+
+    let simple = simple.into_iter()
+                       .filter(|v| v.len() == shortest)
+                       .map(|v| Bool::Or(v.into_iter()
+                                          .map(|i| essentials.essentials[i as usize].to_bool_expr(4))
+                                          .collect()))
+                       .collect::<Vec<Bool>>();
+    assert_eq!(simple, vec![
+        Or(vec![
+            And(vec![b(), not(c()), not(d())]),
+            And(vec![a(), not(b())]),
+            And(vec![a(), c()]),
+        ]),
+    ]);
 }
