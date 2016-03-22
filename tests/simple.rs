@@ -9,6 +9,10 @@ fn ident() {
     assert_eq!(essential_minterms(True.minterms()).essentials, vec![Term::new(0)]);
     assert_eq!(essential_minterms(False.minterms()).essentials, vec![]);
     assert_eq!(essential_minterms(Term(0).minterms()).essentials, vec![Term::new(1)]);
+    assert_eq!(True.simplify(), vec![True]);
+    assert_eq!(False.simplify(), vec![False]);
+    assert_eq!(Term(0).simplify(), vec![Term(0)]);
+    assert_eq!(Not(Box::new(Term(0))).simplify(), vec![Not(Box::new(Term(0)))]);
 }
 
 #[test]
