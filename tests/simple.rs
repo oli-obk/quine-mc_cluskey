@@ -13,6 +13,9 @@ fn ident() {
     assert_eq!(False.simplify(), vec![False]);
     assert_eq!(Term(0).simplify(), vec![Term(0)]);
     assert_eq!(Not(Box::new(Term(0))).simplify(), vec![Not(Box::new(Term(0)))]);
+    assert_eq!(And(vec![Term(0), Term(1)]).simplify(), vec![And(vec![Term(0), Term(1)])]);
+    assert_eq!(And(vec![Not(Box::new(Term(0))), Term(1)]).simplify(), vec![And(vec![Not(Box::new(Term(0))), Term(1)])]);
+    assert_eq!(Or(vec![Term(0), Term(1)]).simplify(), vec![Or(vec![Term(0), Term(1)])]);
 }
 
 #[test]

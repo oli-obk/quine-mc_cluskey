@@ -1,4 +1,4 @@
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Eq, Clone)]
 pub enum Bool {
     True,
     False,
@@ -6,6 +6,31 @@ pub enum Bool {
     And(Vec<Bool>),
     Or(Vec<Bool>),
     Not(Box<Bool>),
+}
+
+impl PartialEq for Bool {
+    fn eq(&self, other: &Self) -> bool {
+        use self::Bool::*;
+        match (self, other) {
+            (&True, &True) |
+            (&False, &False) => true,
+            (&Term(a), &Term(b)) => a == b,
+            (&Not(ref a), &Not(ref b)) => a == b,
+            (&And(ref a), &And(ref b)) |
+            (&Or(ref a), &Or(ref b)) => {
+                if a.len() != b.len() {
+                    return false;
+                }
+                for a in a {
+                    if !b.iter().any(|b| b == a) {
+                        return false;
+                    }
+                }
+                true
+            },
+            _ => false,
+        }
+    }
 }
 
 impl Bool {
