@@ -59,9 +59,9 @@ impl Bool {
 
     pub fn minterms(&self) -> Vec<Term> {
         let terms = self.terms();
-        let nterms = terms.count_ones();
-        assert!((0..nterms).all(|i| (terms & (1 << i)) != 0), "non-continuous naming scheme");
-        (0..(1 << nterms)).filter(|&i| self.eval(i)).map(Term::new).collect()
+        let number_of_terms = terms.count_ones();
+        assert!((0..number_of_terms).all(|i| (terms & (1 << i)) != 0), "non-continuous naming scheme");
+        (0..(1 << number_of_terms)).filter(|&i| self.eval(i)).map(Term::new).collect()
     }
 
     pub fn simplify(&self) -> Vec<Bool> {
@@ -154,11 +154,9 @@ fn simplify(mut e: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
                 if a.iter().all(|x| b.iter().any(|y| y == x)) {
                     del.push(j + i);
                 }
-            } else if b.len() < a.len() {
+            } else if b.len() < a.len() && b.iter().all(|x| a.iter().any(|y| y == x)) {
                 // AB + A -> delete AB
-                if b.iter().all(|x| a.iter().any(|y| y == x)) {
-                    del.push(i);
-                }
+                del.push(i);
             }
         }
     }
@@ -223,12 +221,14 @@ impl std::cmp::PartialOrd for Term {
 impl std::fmt::Debug for Term {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         for i in (0..32).rev() {
-            if (self.dontcare & (1 << i)) != 0 {
-                try!(write!(fmt, "-"));
-            } else if (self.term & (1 << i)) != 0 {
-                try!(write!(fmt, "1"));
+            if (self.dontcare & (1 << i)) == 0 {
+                if (self.term & (1 << i)) == 0 {
+                    try!(write!(fmt, "0"));
+                } else {
+                    try!(write!(fmt, "1"));
+                }
             } else {
-                try!(write!(fmt, "0"));
+                try!(write!(fmt, "-"));
             }
         }
         Ok(())
@@ -306,10 +306,10 @@ impl Term {
         let mut v = Vec::new();
         for bit in 0..n_variables {
             if (self.dontcare & (1 << bit)) == 0 {
-                if (self.term & (1 << bit)) != 0 {
-                    v.push(Bool::Term(bit as u8))
-                } else {
+                if (self.term & (1 << bit)) == 0 {
                     v.push(Bool::Not(Box::new(Bool::Term(bit as u8))))
+                } else {
+                    v.push(Bool::Term(bit as u8))
                 }
             }
         }
