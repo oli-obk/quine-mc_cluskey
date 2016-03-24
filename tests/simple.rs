@@ -19,6 +19,16 @@ fn ident() {
 }
 
 #[test]
+fn simple() {
+    assert_eq!(Not(Box::new(False)).simplify(), vec![True]);
+    assert_eq!(And(vec![Term(0), Or(vec![Term(1), Term(0)])]).simplify(), vec![Term(0)]);
+    assert_eq!(And(vec![Term(0), False]).simplify(), vec![False]);
+    assert_eq!(And(vec![Term(0), True]).simplify(), vec![Term(0)]);
+    assert_eq!(Or(vec![Term(0), False]).simplify(), vec![Term(0)]);
+    assert_eq!(Or(vec![Term(0), True]).simplify(), vec![True]);
+}
+
+#[test]
 fn debug() {
     assert_eq!(&format!("{:?}", True), "T");
     assert_eq!(&format!("{:?}", False), "F");

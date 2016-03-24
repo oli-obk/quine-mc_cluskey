@@ -313,10 +313,10 @@ impl Term {
                 }
             }
         }
-        if v.len() == 1 {
-            v.into_iter().next().unwrap()
-        } else {
-            Bool::And(v)
+        match v.len() {
+            0 => Bool::True,
+            1 => v.into_iter().next().unwrap(),
+            _ => Bool::And(v),
         }
     }
 }
