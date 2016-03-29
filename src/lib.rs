@@ -99,17 +99,26 @@ impl std::fmt::Debug for Bool {
             True => write!(fmt, "T"),
             False => write!(fmt, "F"),
             Term(i) => write!(fmt, "{}", "abcdefghijklmnopqrstuvwxyzαβγδεζη".chars().nth(i as usize).unwrap()),
-            Not(ref a) => write!(fmt, "{:?}'", a),
+            Not(ref a) => match **a {
+                And(_) | Or(_) => write!(fmt, "({:?})'", a),
+                _ => write!(fmt, "{:?}'", a),
+            },
             And(ref a) => {
                 for a in a {
-                    try!(write!(fmt, "{:?}", a));
+                    match *a {
+                        And(_) | Or(_) => try!(write!(fmt, "({:?})", a)),
+                        _ => try!(write!(fmt, "{:?}", a)),
+                    }
                 }
                 Ok(())
             },
             Or(ref a) => {
                 try!(write!(fmt, "{:?}", a[0]));
                 for a in &a[1..] {
-                    try!(write!(fmt, " + {:?}", a));
+                    match *a {
+                        Or(_) => try!(write!(fmt, " + ({:?})", a)),
+                        _ => try!(write!(fmt, " + {:?}", a)),
+                    }
                 }
                 Ok(())
             }
