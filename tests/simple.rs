@@ -26,6 +26,8 @@ fn simple() {
     assert_eq!(And(vec![Bool::Term(0), True]).simplify(), vec![Bool::Term(0)]);
     assert_eq!(Or(vec![Bool::Term(0), False]).simplify(), vec![Bool::Term(0)]);
     assert_eq!(Or(vec![Bool::Term(0), True]).simplify(), vec![True]);
+    assert_eq!(Or(vec![Bool::Term(0), Not(Box::new(And(vec![Bool::Term(0), Bool::Term(1)])))]).simplify(), vec![True]);
+    assert_eq!(Or(vec![Bool::Term(0), Not(Box::new(Or(vec![Bool::Term(0), Bool::Term(1)])))]).simplify(), vec![Or(vec![Not(Box::new(Bool::Term(1))), Bool::Term(0)])]);
 }
 
 #[test]
