@@ -21,7 +21,7 @@ fn main() {
 
 #Obtaining a minimal "and of or" form
 
-Sometimes an expression of the for `a && (b || c)` is shorter than the `a && b || a && c` form.
+Sometimes an expression of the form `a && (b || c)` is shorter than the `a && b || a && c` form.
 We can simply negate the original expression and negate all the resulting simplified expressions to obtain that form.
 
 ```rust
