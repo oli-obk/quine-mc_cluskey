@@ -1,5 +1,6 @@
 [![Clippy Linting Result](https://clippy.bashy.io/github/oli-obk/quine-mc_cluskey/master/badge.svg)](https://clippy.bashy.io/github/oli-obk/quine-mc_cluskey/master/log)
 [![Current Version](http://meritbadge.herokuapp.com/quine-mc_cluskey)](https://crates.io/crates/quine-mc_cluskey)
+[![Build Status](https://travis-ci.org/oli-obk/quine-mc_cluskey.svg?branch=master)](https://travis-ci.org/oli-obk/quine-mc_cluskey)
 
 An algorithm to automatically minimize boolean expressions.
 
