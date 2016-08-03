@@ -1,49 +1,49 @@
 extern crate quine_mc_cluskey;
 
 use quine_mc_cluskey::*;
-use quine_mc_cluskey::Bool::*;
+use quine_mc_cluskey::Bool::{True, False, And, Not, Or};
 
 #[test]
 fn ident() {
-    assert_eq!(essential_minterms(And(vec![Term(0), Term(1)]).minterms()).essentials, vec![Term::new(3)]);
+    assert_eq!(essential_minterms(And(vec![Bool::Term(0), Bool::Term(1)]).minterms()).essentials, vec![Term::new(3)]);
     assert_eq!(essential_minterms(True.minterms()).essentials, vec![Term::new(0)]);
     assert_eq!(essential_minterms(False.minterms()).essentials, vec![]);
-    assert_eq!(essential_minterms(Term(0).minterms()).essentials, vec![Term::new(1)]);
+    assert_eq!(essential_minterms(Bool::Term(0).minterms()).essentials, vec![Term::new(1)]);
     assert_eq!(True.simplify(), vec![True]);
     assert_eq!(False.simplify(), vec![False]);
-    assert_eq!(Term(0).simplify(), vec![Term(0)]);
-    assert_eq!(Not(Box::new(Term(0))).simplify(), vec![Not(Box::new(Term(0)))]);
-    assert_eq!(And(vec![Term(0), Term(1)]).simplify(), vec![And(vec![Term(0), Term(1)])]);
-    assert_eq!(And(vec![Not(Box::new(Term(0))), Term(1)]).simplify(), vec![And(vec![Not(Box::new(Term(0))), Term(1)])]);
-    assert_eq!(Or(vec![Term(0), Term(1)]).simplify(), vec![Or(vec![Term(0), Term(1)])]);
+    assert_eq!(Bool::Term(0).simplify(), vec![Bool::Term(0)]);
+    assert_eq!(Not(Box::new(Bool::Term(0))).simplify(), vec![Not(Box::new(Bool::Term(0)))]);
+    assert_eq!(And(vec![Bool::Term(0), Bool::Term(1)]).simplify(), vec![And(vec![Bool::Term(0), Bool::Term(1)])]);
+    assert_eq!(And(vec![Not(Box::new(Bool::Term(0))), Bool::Term(1)]).simplify(), vec![And(vec![Not(Box::new(Bool::Term(0))), Bool::Term(1)])]);
+    assert_eq!(Or(vec![Bool::Term(0), Bool::Term(1)]).simplify(), vec![Or(vec![Bool::Term(0), Bool::Term(1)])]);
 }
 
 #[test]
 fn simple() {
     assert_eq!(Not(Box::new(False)).simplify(), vec![True]);
-    assert_eq!(And(vec![Term(0), Or(vec![Term(1), Term(0)])]).simplify(), vec![Term(0)]);
-    assert_eq!(And(vec![Term(0), False]).simplify(), vec![False]);
-    assert_eq!(And(vec![Term(0), True]).simplify(), vec![Term(0)]);
-    assert_eq!(Or(vec![Term(0), False]).simplify(), vec![Term(0)]);
-    assert_eq!(Or(vec![Term(0), True]).simplify(), vec![True]);
+    assert_eq!(And(vec![Bool::Term(0), Or(vec![Bool::Term(1), Bool::Term(0)])]).simplify(), vec![Bool::Term(0)]);
+    assert_eq!(And(vec![Bool::Term(0), False]).simplify(), vec![False]);
+    assert_eq!(And(vec![Bool::Term(0), True]).simplify(), vec![Bool::Term(0)]);
+    assert_eq!(Or(vec![Bool::Term(0), False]).simplify(), vec![Bool::Term(0)]);
+    assert_eq!(Or(vec![Bool::Term(0), True]).simplify(), vec![True]);
 }
 
 #[test]
 fn debug() {
     assert_eq!(&format!("{:?}", True), "T");
     assert_eq!(&format!("{:?}", False), "F");
-    assert_eq!(&format!("{:?}", Term(0)), "a");
-    assert_eq!(&format!("{:?}", Term(2)), "c");
-    assert_eq!(&format!("{:?}", Not(Box::new(Term(2)))), "c'");
-    assert_eq!(&format!("{:?}", And(vec![True, Not(Box::new(Term(2)))])), "Tc'");
+    assert_eq!(&format!("{:?}", Bool::Term(0)), "a");
+    assert_eq!(&format!("{:?}", Bool::Term(2)), "c");
+    assert_eq!(&format!("{:?}", Not(Box::new(Bool::Term(2)))), "c'");
+    assert_eq!(&format!("{:?}", And(vec![True, Not(Box::new(Bool::Term(2)))])), "Tc'");
 }
 
 #[test]
 fn wikipedia2() {
-    let d = || Term(3);
-    let c = || Term(2);
-    let b = || Term(1);
-    let a = || Term(0);
+    let d = || Bool::Term(3);
+    let c = || Bool::Term(2);
+    let b = || Bool::Term(1);
+    let a = || Bool::Term(0);
     let not = |x| Not(Box::new(x));
     let expr = Or(vec![
         And(vec![not(a()), b(), not(c()), not(d())]),
