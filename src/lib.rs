@@ -18,7 +18,15 @@ extern crate quickcheck;
 impl quickcheck::Arbitrary for Bool {
     fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> Self {
         let mut terms = 0;
-        arbitrary_bool(g, 5, &mut terms)
+        arbitrary_bool(g, 10, &mut terms)
+    }
+    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+        match *self {
+            Bool::And(ref v) => Box::new(v.shrink().filter(|v| v.len() > 2).map(Bool::And)),
+            Bool::Or(ref v) => Box::new(v.shrink().filter(|v| v.len() > 2).map(Bool::Or)),
+            Bool::Not(ref inner) => Box::new(inner.shrink().map(|b| Bool::Not(Box::new(b)))),
+            _ => quickcheck::empty_shrinker(),
+        }
     }
 }
 
@@ -44,12 +52,11 @@ fn arbitrary_bool<G: quickcheck::Gen>(g: &mut G, depth: usize, terms: &mut u8) -
     }
 }
 
-
 #[cfg(feature="quickcheck")]
 fn arbitrary_term<G: quickcheck::Gen>(g: &mut G, terms: &mut u8) -> Bool {
     if *terms == 0 {
         Bool::Term(*terms)
-    } else if *terms < 32 && g.gen_weighted_bool(5) {
+    } else if *terms < 32 && g.gen_weighted_bool(3) {
         *terms += 1;
         // every term needs to show up at least once
         Bool::Term(*terms - 1)
