@@ -19,4 +19,22 @@ quickcheck! {
             TestResult::from_bool(!b.simplify().is_empty())
         }
     }
+    fn bool_clone(a: Bool) -> bool {
+        let b = a.clone();
+        a == b
+    }
+    fn bool_eval_and_neg(a: Bool, b: Bool, terms: u32) -> bool {
+        let a2 = a.clone();
+        let b2 = b.clone();
+        (!(a & b)).eval(terms) == (!a2 | !b2).eval(terms)
+    }
+    fn bool_eval_or_neg(a: Bool, b: Bool, terms: u32) -> bool {
+        let a2 = a.clone();
+        let b2 = b.clone();
+        (!(a | b)).eval(terms) == (!a2 & !b2).eval(terms)
+    }
+    fn bool_eval_neg(b: Bool, terms: u32) -> bool {
+        let a = !b.clone();
+        a.eval(terms) != b.eval(terms)
+    }
 }

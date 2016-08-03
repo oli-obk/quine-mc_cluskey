@@ -88,6 +88,77 @@ impl PartialEq for Bool {
     }
 }
 
+impl std::ops::Not for Bool {
+    type Output = Bool;
+    fn not(self) -> Bool {
+        use self::Bool::*;
+        match self {
+            True => False,
+            False => True,
+            t @ Term(_) => Not(Box::new(t)),
+            And(mut v) => {
+                for el in &mut v {
+                    *el = !std::mem::replace(el, False);
+                }
+                Or(v)
+            },
+            Or(mut v) => {
+                for el in &mut v {
+                    *el = !std::mem::replace(el, False);
+                }
+                And(v)
+            },
+            Not(inner) => *inner,
+        }
+    }
+}
+
+impl std::ops::BitAnd for Bool {
+    type Output = Self;
+    fn bitand(self, rhs: Bool) -> Bool {
+        use self::Bool::*;
+        match (self, rhs) {
+            (And(mut v), And(rhs)) => {
+                v.extend(rhs);
+                And(v)
+            },
+            (False, _) |
+            (_, False) => False,
+            (b, True) |
+            (True, b) => b,
+            (other, And(mut v)) |
+            (And(mut v), other) => {
+                v.push(other);
+                And(v)
+            },
+            (a, b) => And(vec![a, b]),
+        }
+    }
+}
+
+impl std::ops::BitOr for Bool {
+    type Output = Self;
+    fn bitor(self, rhs: Bool) -> Bool {
+        use self::Bool::*;
+        match (self, rhs) {
+            (Or(mut v), Or(rhs)) => {
+                v.extend(rhs);
+                Or(v)
+            },
+            (False, b) |
+            (b, False) => b,
+            (_, True) |
+            (True, _) => True,
+            (other, Or(mut v)) |
+            (Or(mut v), other) => {
+                v.push(other);
+                Or(v)
+            },
+            (a, b) => Or(vec![a, b]),
+        }
+    }
+}
+
 impl Bool {
     pub fn terms(&self) -> u32 {
         use self::Bool::*;
@@ -100,7 +171,7 @@ impl Bool {
         }
     }
 
-    fn eval(&self, terms: u32) -> bool {
+    pub fn eval(&self, terms: u32) -> bool {
         use self::Bool::*;
         match *self {
             True => true,
