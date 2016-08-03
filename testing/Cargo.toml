@@ -1,0 +1,13 @@
+[package]
+name = "testing"
+version = "0.1.0"
+authors = ["Oliver Schneider <git-spam-no-reply9815368754983@oli-obk.de>"]
+build = "build.rs"
+
+[dev-dependencies]
+quine-mc_cluskey = { path = "..", features = ["quickcheck"] }
+quickcheck = "0.3.1"
+skeptic = "0.4"
+
+[build-dependencies]
+skeptic = "0.4"
