@@ -2,10 +2,65 @@
 pub enum Bool {
     True,
     False,
+    /// can be any number in `0..32`, anything else will cause panics or wrong results
     Term(u8),
+    /// needs to contain at least two elements
     And(Vec<Bool>),
+    /// needs to contain at least two elements
     Or(Vec<Bool>),
     Not(Box<Bool>),
+}
+
+#[cfg(feature="quickcheck")]
+extern crate quickcheck;
+
+#[cfg(feature="quickcheck")]
+impl quickcheck::Arbitrary for Bool {
+    fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> Self {
+        let mut terms = 0;
+        arbitrary_bool(g, 5, &mut terms)
+    }
+}
+
+#[cfg(feature="quickcheck")]
+fn arbitrary_bool<G: quickcheck::Gen>(g: &mut G, depth: usize, terms: &mut u8) -> Bool {
+    if depth == 0 {
+        match g.gen_range(0, 3) {
+            0 => Bool::True,
+            1 => Bool::False,
+            2 => arbitrary_term(g, terms),
+            _ => unreachable!(),
+        }
+    } else {
+        match g.gen_range(0, 6) {
+            0 => Bool::True,
+            1 => Bool::False,
+            2 => arbitrary_term(g, terms),
+            3 => Bool::And(arbitrary_vec(g, depth - 1, terms)),
+            4 => Bool::Or(arbitrary_vec(g, depth - 1, terms)),
+            5 => Bool::Not(Box::new(arbitrary_bool(g, depth - 1, terms))),
+            _ => unreachable!(),
+        }
+    }
+}
+
+
+#[cfg(feature="quickcheck")]
+fn arbitrary_term<G: quickcheck::Gen>(g: &mut G, terms: &mut u8) -> Bool {
+    if *terms == 0 {
+        Bool::Term(*terms)
+    } else if *terms < 32 && g.gen_weighted_bool(5) {
+        *terms += 1;
+        // every term needs to show up at least once
+        Bool::Term(*terms - 1)
+    } else {
+        Bool::Term(g.gen_range(0, *terms))
+    }
+}
+
+#[cfg(feature="quickcheck")]
+fn arbitrary_vec<G: quickcheck::Gen>(g: &mut G, depth: usize, terms: &mut u8) -> Vec<Bool> {
+    (0..g.gen_range(2, 20)).map(|_| arbitrary_bool(g, depth, terms)).collect()
 }
 
 impl PartialEq for Bool {
@@ -34,7 +89,7 @@ impl PartialEq for Bool {
 }
 
 impl Bool {
-    fn terms(&self) -> u32 {
+    pub fn terms(&self) -> u32 {
         use self::Bool::*;
         match *self {
             Term(u) => 1 << u,
@@ -98,6 +153,7 @@ impl std::fmt::Debug for Bool {
         match *self {
             True => write!(fmt, "T"),
             False => write!(fmt, "F"),
+            Term(i) if i > 32 => write!(fmt, "<bad term id {}>", i),
             Term(i) => write!(fmt, "{}", "abcdefghijklmnopqrstuvwxyzαβγδεζη".chars().nth(i as usize).unwrap()),
             Not(ref a) => match **a {
                 And(_) | Or(_) => write!(fmt, "({:?})'", a),
@@ -212,6 +268,16 @@ impl Essentials {
 pub struct Term {
     dontcare: u32,
     term: u32,
+}
+
+#[cfg(feature="quickcheck")]
+impl quickcheck::Arbitrary for Term {
+    fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> Self {
+        Term {
+            dontcare: u32::arbitrary(g),
+            term: u32::arbitrary(g),
+        }
+    }
 }
 
 impl std::cmp::PartialOrd for Term {

@@ -90,7 +90,7 @@ fn wikipedia() {
 
     let simple = simple.into_iter()
                        .filter(|v| v.len() == shortest)
-                       .map(|v| Bool::Or(v.into_iter()
+                       .map(|v| Or(v.into_iter()
                                           .map(|i| essentials.essentials[i as usize].to_bool_expr(4))
                                           .collect()))
                        .collect::<Vec<Bool>>();

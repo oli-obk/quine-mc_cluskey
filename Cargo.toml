@@ -8,6 +8,7 @@ repository = "https://github.com/oli-obk/quine-mc_cluskey"
 build = "build.rs"
 
 [dependencies]
+quickcheck = { version = "0.3.1", optional = true }
 
 [build-dependencies]
 skeptic = "0.4"
