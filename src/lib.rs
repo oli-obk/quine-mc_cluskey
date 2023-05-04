@@ -20,7 +20,7 @@ impl quickcheck::Arbitrary for Bool {
         let mut terms = 0;
         arbitrary_bool(g, 10, &mut terms)
     }
-    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+    fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
         match *self {
             Bool::And(ref v) => Box::new(v.shrink().filter(|v| v.len() > 2).map(Bool::And)),
             Bool::Or(ref v) => Box::new(v.shrink().filter(|v| v.len() > 2).map(Bool::Or)),
@@ -240,18 +240,18 @@ impl std::fmt::Debug for Bool {
             And(ref a) => {
                 for a in a {
                     match *a {
-                        And(_) | Or(_) => try!(write!(fmt, "({:?})", a)),
-                        _ => try!(write!(fmt, "{:?}", a)),
+                        And(_) | Or(_) => write!(fmt, "({:?})", a)?,
+                        _ => write!(fmt, "{:?}", a)?,
                     }
                 }
                 Ok(())
             },
             Or(ref a) => {
-                try!(write!(fmt, "{:?}", a[0]));
+                write!(fmt, "{:?}", a[0])?;
                 for a in &a[1..] {
                     match *a {
-                        Or(_) => try!(write!(fmt, " + ({:?})", a)),
-                        _ => try!(write!(fmt, " + {:?}", a)),
+                        Or(_) => write!(fmt, " + ({:?})", a)?,
+                        _ => write!(fmt, " + {:?}", a)?,
                     }
                 }
                 Ok(())
@@ -376,12 +376,12 @@ impl std::fmt::Debug for Term {
         for i in (0..32).rev() {
             if (self.dontcare & (1 << i)) == 0 {
                 if (self.term & (1 << i)) == 0 {
-                    try!(write!(fmt, "0"));
+                    write!(fmt, "0")?;
                 } else {
-                    try!(write!(fmt, "1"));
+                    write!(fmt, "1")?;
                 }
             } else {
-                try!(write!(fmt, "-"));
+                write!(fmt, "-")?;
             }
         }
         Ok(())
