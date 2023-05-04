@@ -1,3 +1,6 @@
+[workspace]
+members = ["testing"]
+
 [package]
 name = "quine-mc_cluskey"
 version = "0.2.4"
