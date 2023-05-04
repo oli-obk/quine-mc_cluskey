@@ -1,8 +1,8 @@
 [package]
 name = "testing"
 version = "0.1.0"
-authors = ["Oliver Schneider <git-spam-no-reply9815368754983@oli-obk.de>"]
 build = "build.rs"
+edition = "2018"
 
 [dev-dependencies]
 quine-mc_cluskey = { path = "..", features = ["quickcheck"] }

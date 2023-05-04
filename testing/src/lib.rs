@@ -1,6 +1,1 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-    }
-}
+// the lib.rs file is intentionally empty. The tests can be found in the tests/ directory

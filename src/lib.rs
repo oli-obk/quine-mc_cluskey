@@ -20,7 +20,7 @@ impl quickcheck::Arbitrary for Bool {
         let mut terms = 0;
         arbitrary_bool(g, 10, &mut terms)
     }
-    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+    fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
         match *self {
             Bool::And(ref v) => Box::new(v.shrink().filter(|v| v.len() > 2).map(Bool::And)),
             Bool::Or(ref v) => Box::new(v.shrink().filter(|v| v.len() > 2).map(Bool::Or)),
@@ -77,7 +77,7 @@ impl PartialEq for Bool {
             (&True, &True) |
             (&False, &False) => true,
             (&Term(a), &Term(b)) => a == b,
-            (&Not(ref a), &Not(ref b)) => a == b,
+            (Not(a), Not(b)) => a == b,
             (&And(ref a), &And(ref b)) |
             (&Or(ref a), &Or(ref b)) => {
                 if a.len() != b.len() {
@@ -240,18 +240,18 @@ impl std::fmt::Debug for Bool {
             And(ref a) => {
                 for a in a {
                     match *a {
-                        And(_) | Or(_) => try!(write!(fmt, "({:?})", a)),
-                        _ => try!(write!(fmt, "{:?}", a)),
+                        And(_) | Or(_) => write!(fmt, "({:?})", a)?,
+                        _ => write!(fmt, "{:?}", a)?,
                     }
                 }
                 Ok(())
             },
             Or(ref a) => {
-                try!(write!(fmt, "{:?}", a[0]));
+                write!(fmt, "{:?}", a[0])?;
                 for a in &a[1..] {
                     match *a {
-                        Or(_) => try!(write!(fmt, " + ({:?})", a)),
-                        _ => try!(write!(fmt, " + {:?}", a)),
+                        Or(_) => write!(fmt, " + ({:?})", a)?,
+                        _ => write!(fmt, " + {:?}", a)?,
                     }
                 }
                 Ok(())
@@ -342,7 +342,7 @@ impl Essentials {
     }
 }
 
-#[derive(Clone, Eq, Ord)]
+#[derive(Clone, Eq)]
 pub struct Term {
     dontcare: u32,
     term: u32,
@@ -360,14 +360,19 @@ impl quickcheck::Arbitrary for Term {
 
 impl std::cmp::PartialOrd for Term {
     fn partial_cmp(&self, rhs: &Self) -> Option<std::cmp::Ordering> {
-        use std::cmp::Ordering::*;
-        match self.dontcare.partial_cmp(&rhs.dontcare) {
-            Some(Equal) => {},
+        Some(self.cmp(rhs))
+    }
+}
+
+impl std::cmp::Ord for Term {
+    fn cmp(&self, rhs: &Self) -> std::cmp::Ordering {
+        match self.dontcare.cmp(&rhs.dontcare) {
+            std::cmp::Ordering::Equal => {},
             other => return other,
         }
         let l = self.term & !self.dontcare;
         let r = rhs.term & !rhs.dontcare;
-        l.partial_cmp(&r)
+        l.cmp(&r)
     }
 }
 
@@ -376,12 +381,12 @@ impl std::fmt::Debug for Term {
         for i in (0..32).rev() {
             if (self.dontcare & (1 << i)) == 0 {
                 if (self.term & (1 << i)) == 0 {
-                    try!(write!(fmt, "0"));
+                    write!(fmt, "0")?;
                 } else {
-                    try!(write!(fmt, "1"));
+                    write!(fmt, "1")?;
                 }
             } else {
-                try!(write!(fmt, "-"));
+                write!(fmt, "-")?;
             }
         }
         Ok(())
@@ -429,8 +434,8 @@ impl Term {
 
     pub fn with_dontcare(term: u32, dontcare: u32) -> Self {
         Term {
-            dontcare: dontcare,
-            term: term,
+            dontcare,
+            term,
         }
     }
 
@@ -480,7 +485,7 @@ pub fn essential_minterms(mut minterms: Vec<Term>) -> Essentials {
     let mut terms = minterms.clone();
     let mut essentials: Vec<Term> = Vec::new();
     while !terms.is_empty() {
-        let old = std::mem::replace(&mut terms, Vec::new());
+        let old = std::mem::take(&mut terms);
         let mut combined_terms = std::collections::BTreeSet::new();
         for (i, term) in old.iter().enumerate() {
             for (other_i, other) in old[i..].iter().enumerate() {
@@ -498,7 +503,7 @@ pub fn essential_minterms(mut minterms: Vec<Term>) -> Essentials {
         terms.dedup();
     }
     Essentials {
-        minterms: minterms,
-        essentials: essentials,
+        minterms,
+        essentials,
     }
 }
