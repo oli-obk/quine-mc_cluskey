@@ -23,6 +23,7 @@ jobs:
       with:
         toolchain: ${{ matrix.toolchain }}
         override: true
+        components: clippy
     - name: Run cargo check
       run: |
         cargo check --all
