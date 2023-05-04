@@ -342,7 +342,7 @@ impl Essentials {
     }
 }
 
-#[derive(Clone, Eq, Ord)]
+#[derive(Clone, Eq)]
 pub struct Term {
     dontcare: u32,
     term: u32,
@@ -360,14 +360,19 @@ impl quickcheck::Arbitrary for Term {
 
 impl std::cmp::PartialOrd for Term {
     fn partial_cmp(&self, rhs: &Self) -> Option<std::cmp::Ordering> {
-        use std::cmp::Ordering::*;
-        match self.dontcare.partial_cmp(&rhs.dontcare) {
-            Some(Equal) => {},
+        Some(self.cmp(rhs))
+    }
+}
+
+impl std::cmp::Ord for Term {
+    fn cmp(&self, rhs: &Self) -> std::cmp::Ordering {
+        match self.dontcare.cmp(&rhs.dontcare) {
+            std::cmp::Ordering::Equal => {},
             other => return other,
         }
         let l = self.term & !self.dontcare;
         let r = rhs.term & !rhs.dontcare;
-        l.partial_cmp(&r)
+        l.cmp(&r)
     }
 }
 
