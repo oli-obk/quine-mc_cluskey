@@ -77,7 +77,7 @@ impl PartialEq for Bool {
             (&True, &True) |
             (&False, &False) => true,
             (&Term(a), &Term(b)) => a == b,
-            (&Not(ref a), &Not(ref b)) => a == b,
+            (Not(a), Not(b)) => a == b,
             (&And(ref a), &And(ref b)) |
             (&Or(ref a), &Or(ref b)) => {
                 if a.len() != b.len() {
@@ -429,8 +429,8 @@ impl Term {
 
     pub fn with_dontcare(term: u32, dontcare: u32) -> Self {
         Term {
-            dontcare: dontcare,
-            term: term,
+            dontcare,
+            term,
         }
     }
 
@@ -480,7 +480,7 @@ pub fn essential_minterms(mut minterms: Vec<Term>) -> Essentials {
     let mut terms = minterms.clone();
     let mut essentials: Vec<Term> = Vec::new();
     while !terms.is_empty() {
-        let old = std::mem::replace(&mut terms, Vec::new());
+        let old = std::mem::take(&mut terms);
         let mut combined_terms = std::collections::BTreeSet::new();
         for (i, term) in old.iter().enumerate() {
             for (other_i, other) in old[i..].iter().enumerate() {
@@ -498,7 +498,7 @@ pub fn essential_minterms(mut minterms: Vec<Term>) -> Essentials {
         terms.dedup();
     }
     Essentials {
-        minterms: minterms,
-        essentials: essentials,
+        minterms,
+        essentials,
     }
 }
